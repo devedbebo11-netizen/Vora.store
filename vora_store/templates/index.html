@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Vora Store</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <header>
+        <h1>V O R A ✨</h1>
+        <div>
+            <a href="/dashboard" style="color: #111; text-decoration: none; font-weight: 600;">لوحة التحكم ⚙️</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2>منتجاتنا المميزة</h2>
+        
+        <div class="products-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <img src="{{ product.image_url if product.image_url else 'https://via.placeholder.com/300' }}" alt="{{ product.name }}">
+                <div class="product-info">
+                    <h3>{{ product.name }}</h3>
+                    <p>{{ product.description }}</p>
+                    <span class="price">{{ product.price }} ج.م</span>
+                    <button type="button" class="add-btn" data-name="{{ product.name }}" data-price="{{ product.price }}">إضافة إلى السلة 🛒</button>
+                </div>
+            </div>
+            {% else %}
+            <p>لا توجد منتجات متاحة حالياً. يمكنك إضافتها من لوحة التحكم.</p>
+            {% endfor %}
+        </div>
+
+        <div class="card" style="margin-top: 40px;">
+            <h2>إتمام الطلب 🛍️</h2>
+            <form action="/checkout" method="POST">
+                <label>اسم العميل:</label>
+                <input type="text" name="name" required placeholder="اكتب اسمك بالكامل">
+
+                <label>رقم الموبايل:</label>
+                <input type="text" name="phone" required placeholder="01xxxxxxxx0">
+
+                <label>العنوان بالتفصيل:</label>
+                <textarea name="address" required placeholder="المحافظة، المدينة، الشارع، رقم الحلة..."></textarea>
+
+                <input type="hidden" name="items" id="cart-items-input">
+
+                <div style="margin-bottom: 15px; font-weight: bold;" id="cart-summary">
+                    السلة فارغة حالياً.
+                </div>
+
+                <button type="submit" id="submit-btn" disabled style="background-color: #ccc;">تأكيد الأوردر 🚀</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+
+        // استخدام Event Listener بدلاً من onclick لتجنب أي مشاكل في التداخل
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('add-btn')) {
+                let name = event.target.getAttribute('data-name');
+                let price = parseFloat(event.target.getAttribute('data-price'));
+                addToCart(name, price);
+            }
+        });
+
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            let summaryDiv = document.getElementById('cart-summary');
+            let submitBtn = document.getElementById('submit-btn');
+
+            if (cart.length === 0) {
+                summaryDiv.innerHTML = "السلة فارغة حالياً.";
+                document.getElementById('cart-items-input').value = "";
+                submitBtn.disabled = true;
+                submitBtn.style.backgroundColor = "#ccc";
+            } else {
+                let text = "المنتجات المضافة:\n";
+                let total = 0;
+                cart.forEach((item) => {
+                    text += `- ${item.name} (${item.price} ج.م)\n`;
+                    total += item.price;
+                });
+                text += `\nالإجمالي: ${total} ج.م`;
+                
+                summaryDiv.innerText = text;
+                document.getElementById('cart-items-input').value = text;
+                submitBtn.disabled = false;
+                submitBtn.style.backgroundColor = "#111";
+            }
+        }
+    </script>
+</body>
+</html>
